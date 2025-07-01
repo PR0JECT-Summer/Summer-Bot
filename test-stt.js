@@ -34,7 +34,7 @@ async function testSTTComplete() {
 
                 // Teste de transcrição
                 console.log('   🎤 Testando transcrição...');
-                const transcription = await stt.transcribe(wavPath);
+                const transcription = await stt.transcribeWithVosk(wavPath);
                 console.log(`   ✅ Transcrição: "${transcription}"`);
 
                 // Teste completo

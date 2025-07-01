@@ -12,17 +12,37 @@ def transcribe_audio(audio_file_path, model_path):
     try:
         # Verifica se o arquivo de áudio existe
         if not os.path.exists(audio_file_path):
-            print(f"Erro: Arquivo de audio nao encontrado: {audio_file_path}")
+            print(f"[ERROR] Arquivo de audio nao encontrado: {audio_file_path}")
             return ""
         
         # Verifica se o modelo existe
         if not os.path.exists(model_path):
-            print(f"Erro: Modelo Vosk nao encontrado: {model_path}")
+            print(f"[ERROR] Modelo Vosk nao encontrado: {model_path}")
             return ""
+        
+        # Detectar tipo de modelo
+        print(f"[INFO] Detectando tipo de modelo: {model_path}")
+        
+        # Verificar estrutura do modelo
+        model_files = os.listdir(model_path)
+        print(f"[DEBUG] Arquivos/pastas no modelo: {model_files}")
+        
+        # Modelo antigo tem arquivos diretos (final.mdl, etc.)
+        has_old_structure = any(f.endswith('.mdl') or f.endswith('.fst') for f in model_files)
+        # Modelo novo tem pastas (am, conf, graph, etc.)
+        has_new_structure = any(f in ['am', 'conf', 'graph'] for f in model_files)
+        
+        if has_old_structure:
+            print("[INFO] Modelo tipo ANTIGO detectado (arquivos diretos)")
+        elif has_new_structure:
+            print("[INFO] Modelo tipo NOVO detectado (estrutura Kaldi)")
+        else:
+            print("[WARN] Estrutura de modelo desconhecida")
         
         print(f"[INFO] Carregando modelo: {model_path}")
         model = Model(model_path)
         rec = KaldiRecognizer(model, 16000)
+        print("[SUCCESS] Modelo carregado com sucesso")
         
         print(f"[INFO] Processando audio: {audio_file_path}")
         wf = wave.open(audio_file_path, 'rb')

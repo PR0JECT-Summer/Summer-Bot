@@ -2,12 +2,19 @@ const { spawn } = require("child_process");
 const { error } = require("console");
 const path = require("path");
 const AudioConverter = require('./converter');
+const GoogleSpeechSTT = require('./googleSpeech'); // REABILITADO
 
 class STTBridge {
     constructor() {
+        // Modelo antigo - mais estável e confiável
         this.modelPath = path.join(__dirname, "../../vosk-model/vosk-model-small-pt-0.3");
         this.scriptPath = path.join(__dirname, "../../scripts/transcribe.py");
+        this.pythonPath = path.join(__dirname, "../../.venv/Scripts/python.exe");
         this.converter = new AudioConverter();
+        
+        // Adicionar Google Speech
+        this.googleSpeech = new GoogleSpeechSTT(); // REABILITADO
+        this.useGoogleSpeech = true; // REABILITADO
     }
 
     /**
@@ -37,7 +44,7 @@ class STTBridge {
             
             // 2. Transcrever o WAV
             console.log('2️⃣ Transcrevendo áudio...');
-            const transcription = await this.transcribe(wavFilePath);
+            const transcription = await this.transcribeWithBestMethod(wavFilePath);
             
             // 3. Cleanup (opcional)
             if (cleanup) {
@@ -58,11 +65,44 @@ class STTBridge {
         }
     }
 
-    async transcribe(audioFilePath) {
-        return new Promise((resolve, reject) => {
-            console.log(`🎤 Iniciando transcrição: ${audioFilePath}`);
+    /**
+     * Transcreve usando o melhor método disponível (Google Speech primeiro, Vosk como fallback)
+     * @param {string} wavFilePath - Caminho para arquivo WAV
+     * @returns {Promise<string>} - Texto transcrito
+     */
+    async transcribeWithBestMethod(wavFilePath) {
+        if (this.useGoogleSpeech) {
+            try {
+                console.log('🤖 Tentando Google Speech...');
+                const result = await this.googleSpeech.transcribe(wavFilePath);
+                if (result && result.trim()) {
+                    console.log('✅ Google Speech funcionou!');
+                    return result;
+                }
+                console.log('⚠️ Google Speech não retornou resultado, tentando Vosk...');
+            } catch (error) {
+                console.error('⚠️ Google Speech falhou:', error.message);
+                console.log('🔄 Tentando fallback com Vosk...');
+            }
+        } else {
+            console.log('ℹ️ Google Speech desabilitado, usando Vosk...');
+        }
+        
+        // Usar Vosk
+        console.log('🗣️ Usando Vosk...');
+        return await this.transcribeWithVosk(wavFilePath);
+    }
 
-            const pythonProcess = spawn("python", [
+    /**
+     * Transcreve usando Vosk (método original)
+     * @param {string} audioFilePath - Caminho para arquivo WAV
+     * @returns {Promise<string>} - Texto transcrito
+     */
+    async transcribeWithVosk(audioFilePath) {
+        return new Promise((resolve, reject) => {
+            console.log(`🎤 Vosk - Iniciando transcrição: ${audioFilePath}`);
+
+            const pythonProcess = spawn(this.pythonPath, [
                 this.scriptPath,
                 audioFilePath,
                 this.modelPath
@@ -81,7 +121,7 @@ class STTBridge {
 
             pythonProcess.on("close", (code) => {
                 if (code !== 0) {
-                    console.error(`❌ Erro no Python (código ${code}):`, stderr);
+                    console.error(`❌ Vosk - Erro no Python (código ${code}):`, stderr);
                     reject(new Error(`Python script failed with code ${code}`));
                     return;
                 }
@@ -105,23 +145,36 @@ class STTBridge {
                     const result = JSON.parse(resultLine);
 
                     if (result.success && result.text) {
-                        console.log(`✅ Transcrição concluída: "${result.text}"`);
+                        console.log(`✅ Vosk - Transcrição: "${result.text}"`);
                         resolve(result.text);
                     } else {
-                        console.log('🔇 Nenhum texto detectado no áudio');
+                        console.log('🔇 Vosk - Nenhum texto detectado');
                         resolve('');
                     }
                 } catch (error) {
-                    console.error('❌ Erro ao processar resultado:', error);
+                    console.error('❌ Vosk - Erro ao processar resultado:', error);
                     console.log('Raw stdout:', stdout);
                     reject(error);
                 }
             });
+            
             pythonProcess.on("error", (error) => {
-                console.error('❌ Erro ao executar Python:', error);
+                console.error('❌ Vosk - Erro ao executar Python:', error);
                 reject(error);
             })
         })
+    }
+
+    /**
+     * Testa se as credenciais do Google estão configuradas
+     * @returns {Promise<boolean>} - True se Google Speech está disponível
+     */
+    async testGoogleSpeech() {
+        try {
+            return await this.googleSpeech.testCredentials();
+        } catch (error) {
+            return false;
+        }
     }
 }
 
