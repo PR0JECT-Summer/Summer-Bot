@@ -7,6 +7,14 @@ yarn-error.log*
 # Environment variables
 .env
 
+# Google Cloud Credentials e arquivos sensíveis
+gen-lang-client-*.json
+google-credentials.json
+*.key
+*.pem
+credentials/
+service-account*.json
+
 # OS generated files
 .DS_Store
 .DS_Store?
