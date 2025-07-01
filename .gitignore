@@ -51,3 +51,14 @@ coverage/
 # Build outputs
 dist/
 build/
+
+# Google Cloud Credentials e arquivos sensíveis
+gen-lang-client-*.json
+google-credentials.json
+*.key
+*.pem
+credentials/
+service-account*.json
+
+# Arquivo problemático Windows
+nul
