@@ -15,6 +15,9 @@ google-credentials.json
 credentials/
 service-account*.json
 
+# Arquivo problemático Windows
+nul
+
 # OS generated files
 .DS_Store
 .DS_Store?
