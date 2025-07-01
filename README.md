@@ -53,8 +53,38 @@ pip install vosk soundfile
 ### 4. Configurar variáveis de ambiente
 ```bash
 cp .env.example .env
-# Edite o .env com seu token do Discord
+# Edite o .env com:
+# - Token do Discord
+# - Credenciais do Google Speech (opcional)
 ```
+
+#### 🔐 Configuração Google Speech (Opcional)
+Para usar o Google Speech-to-Text além do Vosk:
+
+1. **Criar projeto Google Cloud:**
+   - Acesse [Google Cloud Console](https://console.cloud.google.com/)
+   - Crie um novo projeto ou selecione existente
+   
+2. **Ativar API:**
+   - Ative a Speech-to-Text API
+   
+3. **Criar conta de serviço:**
+   - Vá em IAM & Admin → Service Accounts
+   - Crie nova conta de serviço
+   - Baixe o arquivo JSON das credenciais
+   
+4. **Configurar .env:**
+   ```env
+   # Copie os valores do arquivo JSON baixado
+   GOOGLE_PROJECT_ID="seu-project-id"
+   GOOGLE_PRIVATE_KEY_ID="sua-private-key-id"
+   GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+   GOOGLE_CLIENT_EMAIL="sua-conta@projeto.iam.gserviceaccount.com"
+   GOOGLE_CLIENT_ID="seu-client-id"
+   GOOGLE_CLIENT_X509_CERT_URL="https://www.googleapis.com/robot/v1/metadata/x509/..."
+   ```
+
+> ⚠️ **Segurança:** Nunca commite o arquivo `.env`! Ele já está no `.gitignore`.
 
 ## 🎮 Comandos
 
@@ -64,13 +94,19 @@ cp .env.example .env
 ## 🔧 Funcionalidades
 
 ### ✅ Implementado
+
 - [x] Estrutura modular do projeto
 - [x] Captura de áudio do Discord
 - [x] Conversão OGG → WAV
 - [x] Transcrição usando Vosk (Python)
+- [x] Transcrição usando Whisper (local, offline)
+- [x] Suporte a Google Speech-to-Text (opcional)
+- [x] Sistema de segurança com variáveis de ambiente
+- [x] Suporte nativo a múltiplos formatos (OGG, WAV, MP3, M4A, FLAC)
 - [x] Exibição da transcrição no chat
 
 ### 🚧 Em desenvolvimento
+
 - [ ] Sistema TTS completo
 - [ ] Comandos avançados
 - [ ] Interface de configuração

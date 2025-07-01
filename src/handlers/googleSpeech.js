@@ -1,21 +1,25 @@
 const speech = require('@google-cloud/speech');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
 class GoogleSpeechSTT {
     constructor() {
-        // Configurar cliente da Google Speech com as credenciais diretas
+        // Verificar se as variáveis de ambiente estão configuradas
+        this.validateEnvironmentVariables();
+        
+        // Configurar cliente da Google Speech com credenciais do .env
         const credentials = {
             type: "service_account",
-            project_id: "gen-lang-client-0414032880",
-            private_key_id: "68c7e0d4873658c8c1e35547ee82af29c84b4014",
-            private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCiLMq+Iy+mIdVY\nYMRXaVAvwMxwmLcFFZajX3OE4WK5y//SI08CoAqkzu+DbWzVJwJKSyZZ67C1EXHv\nW0H+rfzs3pnDEkPyn6+EzZk8mZ/GQQc30GaybILxRM979PIjscYVklTnRJxHK40w\niKKCAquskVzaVB4RBYYrmBzD+/nlcVUr9wNCdNmtO5kgwPlpjIeyQlJen+187zfT\nT0oiTz4kvbVl3+4x5YzD3O5A6UK9dRJ/kezX1gK7Theicrsk0MbKeagpWVD/CC+h\nSgHzjEQtYUByDRJcHi+zkirhcOH+GgFmQV81FHDn3ECrp+qc2PH7t9fZKqpBJ5Jv\nGCXq6qb3AgMBAAECggEAHxvfgkymmcQ4tBzP3QKvJpHhxaGNzhRfkpQ/SRihAwn+\nVzV9tP+1OvsVF814SIUUm+LBhxM+kOU5SVRkmvGOKHPk4/YPga2fEicMQ4MmknWr\n6El6QbSuA5ETCfCpOC6kVEP/NGPFZKOWkF5NagoQG2jA+oKTR+ma3KbvsaqWu6vN\nF+7ITWY6E6KmZDCo1fmYrr8SHonknGsyT2V2qGGtKOFOC7JzBTGDnRoJknzZ3jHj\ntfrhZPZhx+9Ejd9cGK92bisYgkM/L2AHOJK8NraBzR3NPlTUSK1fi3bp0aDEmwkE\nnyvNbKm2/tbLbgHqie2Xao49BpbQ6NSbqCzr1lIWGQKBgQDSbpBfPGqalX/BHJnm\nVOS9zNT9BpI0VEVZXSgXZisfnGBuZStwFREwP9VyTI33yTlcxuzAVsya2mpBECEy\n3V9Dc7hnwPx07LcDgQzWIIEPZEG6883R0OwVcnluWAjC48Hz6w9YhrRSimWzfr4D\ntlUfKT2PmfFjCkwRITdjuiWVjwKBgQDFSxKOEWmWxUmVY9mXP1QcmxhWufiqEsQ5\nk4MBijFYM3WaZC5SuaiS1UQ0ZYdH6z9oYh5mg0LLn2uXgLyApuqkoW1pT4jOIVdM\nwaQfkQ0hWJzSMIxwDTvklFAhMVpkSCOVNd6N2EANkwNj6a0tT3x5t/YSBb2hg2nq\n6fFAtEI0GQKBgEOPbdi1vAAveVnVxe92WA474jHuVyhn2fAMAaAplDTM7wTihGSy\nztbv16afv4DLYRhRYZeLBpu8/hovhIkhG8G7OHxPMH6VtVhxqV5iBy2a4aOVPQJd\nEj78htIPf5iaqR2X3VBtxx0tA+PyEC1+76tWgUZGhYJnvu5M/MyO6hwvAoGAaPIn\nG5Udkoq9Oo8TloWkS1cg2jkwkd9Lq8jQvgfxeZZd71Ns5KpHhluVXT3IeTQk1XSj\n8SnPZRsXE07ydojTdeE8nvEkt2k60+SJVhVFY8CMIq6adZxEiLFv8kgbag6JhvxR\ntygZ4l6aRhJuARUwBFsbtLiDB6Asvj3VC/MW6DkCgYEAj9ms10B1IM2faWCmgkDo\nHj8CUqniOox+VtpXg15CNRfcUQke0SLdkvAr9AaA+8yNzrIVbigkIYoA5NspnaBn\nu3R/ClTNkpAuBHpDNdGIoySnLiSvPM6PE62GVfavAk6HDwIEpJi1njBKpnTKm5w7\nVGDuU5wR/c30zlDEbgYsDYI=\n-----END PRIVATE KEY-----\n",
-            client_email: "summer-stt@gen-lang-client-0414032880.iam.gserviceaccount.com",
-            client_id: "115477543512668442370",
+            project_id: process.env.GOOGLE_PROJECT_ID,
+            private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
+            private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // Converter \n literal para quebras de linha
+            client_email: process.env.GOOGLE_CLIENT_EMAIL,
+            client_id: process.env.GOOGLE_CLIENT_ID,
             auth_uri: "https://accounts.google.com/o/oauth2/auth",
             token_uri: "https://oauth2.googleapis.com/token",
             auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-            client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/summer-stt%40gen-lang-client-0414032880.iam.gserviceaccount.com",
+            client_x509_cert_url: process.env.GOOGLE_CLIENT_X509_CERT_URL,
             universe_domain: "googleapis.com"
         };
 
@@ -115,7 +119,7 @@ class GoogleSpeechSTT {
     }
 
     /**
-     * Verifica se as credenciais estão configuradas
+     * Verifica se as credenciais estão configuradas e funcionando
      * @returns {Promise<boolean>} - True se as credenciais estão OK
      */
     async testCredentials() {
@@ -139,17 +143,54 @@ class GoogleSpeechSTT {
             
         } catch (error) {
             if (error.message.includes('UNAUTHENTICATED')) {
-                console.error('❌ Credenciais não configuradas');
+                console.error('❌ Credenciais não autenticadas');
+                console.error('💡 Verifique se as variáveis de ambiente estão corretas');
                 return false;
             } else if (error.message.includes('INVALID_ARGUMENT')) {
                 // Erro esperado com áudio vazio, mas autenticação OK
-                console.log('✅ Credenciais configuradas corretamente');
+                console.log('✅ Credenciais configuradas e funcionando');
                 return true;
+            } else if (error.message.includes('PERMISSION_DENIED')) {
+                console.error('❌ Permissões insuficientes na API do Google Cloud');
+                console.error('💡 Verifique se a Speech-to-Text API está habilitada');
+                return false;
             }
             
             console.error('❌ Erro ao testar credenciais:', error.message);
             return false;
         }
+    }
+
+    /**
+     * Valida se todas as variáveis de ambiente necessárias estão configuradas
+     * @throws {Error} - Se alguma variável estiver faltando
+     */
+    validateEnvironmentVariables() {
+        const requiredVars = [
+            'GOOGLE_PROJECT_ID',
+            'GOOGLE_PRIVATE_KEY_ID', 
+            'GOOGLE_PRIVATE_KEY',
+            'GOOGLE_CLIENT_EMAIL',
+            'GOOGLE_CLIENT_ID',
+            'GOOGLE_CLIENT_X509_CERT_URL'
+        ];
+
+        const missingVars = requiredVars.filter(varName => !process.env[varName]);
+
+        if (missingVars.length > 0) {
+            console.error('❌ Variáveis de ambiente do Google Speech não configuradas:');
+            missingVars.forEach(varName => {
+                console.error(`   • ${varName}`);
+            });
+            console.error('\n💡 Configure as variáveis no arquivo .env:');
+            console.error('   1. Copie google-credentials.example.json para .env');
+            console.error('   2. Adicione as credenciais do Google Cloud');
+            console.error('   3. Reinicie a aplicação');
+            
+            throw new Error(`Credenciais do Google Speech não configuradas. Faltam: ${missingVars.join(', ')}`);
+        }
+
+        console.log('✅ Variáveis de ambiente do Google Speech configuradas');
     }
 }
 

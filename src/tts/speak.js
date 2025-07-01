@@ -20,9 +20,9 @@ class TTSHandler {
         // - Amazon Polly
         // - Microsoft Speech Services
         // - gTTS (Google Text-to-Speech) - versão gratuita
-        
+
         console.log(`Convertendo texto para fala: "${text}" (${language})`);
-        
+
         // Placeholder - implementar TTS real aqui
         throw new Error('TTS não implementado ainda. Implemente seu provedor preferido.');
     }
@@ -42,7 +42,7 @@ class TTSHandler {
             const resource = createAudioResource(audioPath);
             this.player.play(resource);
             connection.subscribe(this.player);
-            
+
             this.isPlaying = true;
 
             this.player.on(AudioPlayerStatus.Playing, () => {
@@ -80,7 +80,7 @@ class TTSHandler {
         try {
             const audioPath = await this.textToSpeech(text, language);
             await this.playAudio(connection, audioPath);
-            
+
             // Opcional: limpar arquivo temporário após reprodução
             setTimeout(() => {
                 if (fs.existsSync(audioPath)) {
